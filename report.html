@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>รายงานการขาย</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #111827;
+    }
+
+    /* ===== Filter ===== */
+    .filter-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 25px;
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    .filter-box input,
+    .filter-box select,
+    .filter-box button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
+    .filter-box button {
+      background-color: #facc15;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .filter-box button:hover {
+      background-color: #eab308;
+    }
+
+    /* ===== Summary ===== */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .summary-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .summary-card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .summary-card p {
+      margin-top: 8px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    /* ===== Table ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #facc15;
+      font-size: 14px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+
+    .back-btn {
+      margin-top: 25px;
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #3b82f6;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+
+    .back-btn:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📊 รายงานการขาย</h1>
+
+    <!-- Filter -->
+    <div class="filter-box">
+      <input type="date" id="startDate" />
+      <input type="date" id="endDate" />
+      <select id="category">
+        <option value="">ทุกประเภท</option>
+        <option value="เบเกอรี่">เบเกอรี่</option>
+        <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+      </select>
+      <button onclick="filterData()">ค้นหา</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary">
+      <div class="summary-card">
+        <h3>ยอดขายรวม</h3>
+        <p id="totalSales">0 บาท</p>
+      </div>
+      <div class="summary-card">
+        <h3>จำนวนรายการขาย</h3>
+        <p id="totalOrders">0 รายการ</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>วันที่</th>
+          <th>สินค้า</th>
+          <th>ประเภท</th>
+          <th>จำนวน</th>
+          <th>ราคา</th>
+        </tr>
+      </thead>
+      <tbody id="reportTable"></tbody>
+    </table>
+    
+    <a href="index.html" class="back-btn">⬅ กลับหน้าหลัก</a>
+  </div>
+  <script>
+    const salesData = [
+      { date: '2025-12-01', name: 'คุกกี้ช็อกโกแลต', category: 'เบเกอรี่', qty: 5, price: 250 },
+      { date: '2025-12-02', name: 'บราวนี่', category: 'เบเกอรี่', qty: 3, price: 180 },
+      { date: '2025-12-02', name: 'กาแฟเย็น', category: 'เครื่องดื่ม', qty: 4, price: 200 },
+      { date: '2025-12-03', name: 'ชาเขียว', category: 'เครื่องดื่ม', qty: 2, price: 120 }
+    ];
+
+    function renderTable(data) {
+      const table = document.getElementById('reportTable');
+      table.innerHTML = '';
+      let total = 0;
+
+      data.forEach(item => {
+        total += item.price;
+        table.innerHTML += `
+          <tr>
+            <td>${item.date}</td>
+            <td>${item.name}</td>
+            <td>${item.category}</td>
+            <td>${item.qty}</td>
+            <td>${item.price} บาท</td>
+          </tr>`;
+      });
+
+      document.getElementById('totalSales').innerText = total + ' บาท';
+      document.getElementById('totalOrders').innerText = data.length + ' รายการ';
+    }
+
+    function filterData() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      const category = document.getElementById('category').value;
+
+      let filtered = salesData.filter(item => {
+        return (!start || item.date >= start) &&
+               (!end || item.date <= end) &&
+               (!category || item.category === category);
+      });
+
+      renderTable(filtered);
+    }
+
+    renderTable(salesData);
+  </script>
+
+</body>
+</html>

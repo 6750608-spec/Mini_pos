@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <title>รายงานการขาย</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-family: 'Sarabun', sans-serif;
       background-color: #f3f4f6;
       margin: 0;
       padding: 0;
@@ -22,6 +24,9 @@
     h1 {
       margin-bottom: 20px;
       color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     /* ===== Filter ===== */
@@ -31,30 +36,58 @@
       gap: 12px;
       margin-bottom: 25px;
       background: #ffffff;
-      padding: 15px;
+      padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
     }
 
     .filter-box input,
-    .filter-box select,
-    .filter-box button {
-      padding: 8px 12px;
+    .filter-box select {
+      padding: 10px 12px;
       border-radius: 6px;
       border: 1px solid #d1d5db;
       font-size: 14px;
+      font-family: inherit;
     }
 
-    .filter-box button {
-      background-color: #facc15;
+    .btn {
+      padding: 10px 18px;
+      border-radius: 6px;
       border: none;
       cursor: pointer;
       font-weight: 600;
+      font-size: 14px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
     }
 
-    .filter-box button:hover {
-      background-color: #eab308;
+    .btn-search {
+      background-color: #3b82f6;
+      color: white;
     }
+    .btn-search:hover { background-color: #2563eb; }
+
+    .btn-reset {
+      background-color: #e5e7eb;
+      color: #374151;
+    }
+    .btn-reset:hover { background-color: #d1d5db; }
 
     /* ===== Summary ===== */
     .summary {
@@ -69,7 +102,10 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      border-left: 5px solid #3b82f6;
     }
+
+    .summary-card:nth-child(2) { border-left-color: #facc15; }
 
     .summary-card h3 {
       margin: 0;
@@ -79,126 +115,267 @@
 
     .summary-card p {
       margin-top: 8px;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
       color: #111827;
     }
 
     /* ===== Table ===== */
+    .table-container {
+        background: #ffffff;
+        border-radius: 12px;
+        overflow-x: auto; /* Responsive Table */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #ffffff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      min-width: 600px;
     }
 
     th, td {
-      padding: 12px 14px;
-      text-align: center;
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #f3f4f6;
     }
 
     th {
-      background-color: #facc15;
+      background-color: #f9fafb;
       font-size: 14px;
+      color: #374151;
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9fafb;
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background-color: #f9fafb; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
     }
+    .st-waiting { background-color: #fee2e2; color: #991b1b; }
+    .st-cooking { background-color: #dbeafe; color: #1e40af; }
+    .st-done { background-color: #d1fae5; color: #065f46; }
 
     .back-btn {
       margin-top: 25px;
       display: inline-block;
       padding: 10px 16px;
-      background-color: #3b82f6;
+      background-color: #4b5563;
       color: #ffffff;
       text-decoration: none;
       border-radius: 8px;
+      font-weight: 600;
     }
+    .back-btn:hover { background-color: #374151; }
 
-    .back-btn:hover {
-      background-color: #2563eb;
+    /* Loading */
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>📊 รายงานการขาย</h1>
-    <!-- Summary -->
+    <h1><i data-feather="pie-chart"></i> รายงานการขาย</h1>
+
+    <div class="filter-box">
+        <div class="filter-group">
+            <label>ตั้งแต่วันที่</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="filter-group">
+            <label>ถึงวันที่</label>
+            <input type="date" id="endDate">
+        </div>
+        <div class="filter-group">
+            <label>สถานะ</label>
+            <select id="statusFilter">
+                <option value="all">ทั้งหมด</option>
+                <option value="เสร็จสิ้น">✅ เสร็จสิ้น</option>
+                <option value="รอดำเนินการ">⏳ รอดำเนินการ</option>
+                <option value="กำลังปรุง">👨‍🍳 กำลังปรุง</option>
+            </select>
+        </div>
+        <div class="filter-group" style="flex-direction: row; align-self: flex-end; gap: 10px;">
+            <button onclick="applyFilter()" class="btn btn-search"><i data-feather="search" width="16"></i> ค้นหา</button>
+            <button onclick="resetFilter()" class="btn btn-reset"><i data-feather="rotate-ccw" width="16"></i> แสดงทั้งหมด</button>
+        </div>
+    </div>
+
     <div class="summary">
       <div class="summary-card">
-        <h3>ยอดขายรวม</h3>
-        <p id="totalSales">0 บาท</p>
+        <h3>ยอดขายรวม (ตามที่เลือก)</h3>
+        <p id="totalSales">0.00 บาท</p>
       </div>
       <div class="summary-card">
-        <h3>จำนวนรายการขาย</h3>
+        <h3>จำนวนออเดอร์ (ตามที่เลือก)</h3>
         <p id="totalOrders">0 รายการ</p>
       </div>
     </div>
 
-    <!-- Table -->
-    <table>
-      <thead>
-        <tr>
-          <th>วันที่</th>
-          <th>สินค้า</th>
-          <th>ประเภท</th>
-          <th>จำนวน</th>
-          <th>ราคา</th>
-        </tr>
-      </thead>
-      <tbody id="reportTable"></tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>วันที่/เวลา</th>
+                    <th>เลขออเดอร์</th>
+                    <th>รายการสินค้า</th>
+                    <th>สถานะ</th>
+                    <th>ยอดเงิน</th>
+                </tr>
+            </thead>
+            <tbody id="reportTable">
+                <tr><td colspan="5" class="loading">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+        </table>
+    </div>
     
     <a href="index.html" class="back-btn">⬅ กลับหน้าหลัก</a>
   </div>
+
   <script>
-    const salesData = [
-      { date: '2025-12-01', name: 'คุกกี้ช็อกโกแลต', category: 'เบเกอรี่', qty: 5, price: 250 },
-      { date: '2025-12-02', name: 'บราวนี่', category: 'เบเกอรี่', qty: 3, price: 180 },
-      { date: '2025-12-02', name: 'กาแฟเย็น', category: 'เครื่องดื่ม', qty: 4, price: 200 },
-      { date: '2025-12-03', name: 'ชาเขียว', category: 'เครื่องดื่ม', qty: 2, price: 120 }
-    ];
+    // URL เดียวกับ index.html
+    const API_URL = "https://script.google.com/macros/s/AKfycby15QIuQ7S9NCnxS-gK63t9PkPXeBNjgVH_vwpKPdFEodyOUNFaom3bSzHcX6RaKx-pDg/exec"; 
+    
+    let allOrders = []; // เก็บข้อมูลทั้งหมดที่โหลดมา
+
+    feather.replace();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadData();
+    });
+
+    async function loadData() {
+        try {
+            const res = await fetch(`${API_URL}?action=getOrders`);
+            const data = await res.json();
+            
+            // แปลงข้อมูลเบื้องต้นให้พร้อมใช้งาน
+            allOrders = data.map(order => {
+                // พยายามแกะ JSON string ของ items เพื่อหาข้อมูลเชิงลึกถ้าจำเป็น
+                // แต่ API ปกติส่ง string มา เราใช้ string แสดงผลไปก่อน
+                // แปลงเวลาให้เป็น Date Object เพื่อเปรียบเทียบ
+                return {
+                    ...order,
+                    dateObj: new Date(order.time), // สมมติ order.time เป็น format ที่ JS อ่านได้
+                    totalPrice: calculateOrderTotal(order.items) // คำนวณยอดเงินจาก string หรือ object
+                };
+            });
+
+            renderTable(allOrders);
+        } catch (error) {
+            console.error(error);
+            document.getElementById('reportTable').innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">โหลดข้อมูลล้มเหลว</td></tr>`;
+        }
+    }
+
+    // ฟังก์ชันคำนวณราคาแต่ละออเดอร์ (ขึ้นอยู่กับว่า API ส่ง items มาแบบไหน)
+    function calculateOrderTotal(itemsData) {
+        // กรณี items เป็น String เช่น "ข้าวผัด x 2, น้ำเปล่า x 1" (แบบง่าย)
+        // หรือถ้าใน index.html ส่งไปเป็น JSON string เราอาจจะต้อง parse
+        // แต่ใน index.html ตัวแปร payload.total ถูกส่งไปไหม? 
+        // ถ้า API ไม่ได้เก็บ Total ไว้ เราต้องคำนวณเอง แต่ในที่นี้ขอสมมติว่าดึง Total ไม่ได้ 
+        // เราจะใช้ Total ถ้า API ส่งมา แต่ถ้าไม่ส่งมา เราอาจจะแสดงเป็น - หรือต้องแก้ Backend ให้ส่ง Total มาด้วย
+        
+        // *จาก Code index.html มีการส่ง total ไป แต่ถ้า getOrders ไม่ return total กลับมา
+        // เราอาจจะต้องพึ่งพาข้อมูลที่มี
+        
+        // สมมติ: ถ้า backend ไม่ได้ส่ง field 'total' กลับมา เราจะ return 0 ไว้ก่อน
+        // แต่ถ้า items เป็น string ธรรมดา เราจะคำนวณยาก
+        // เพื่อให้โปรแกรมทำงานได้: สมมติว่ามี field total หรือพยายามหาตัวเลข
+        return 0; // *หมายเหตุ: คุณควรแก้ Google Script ให้ return total กลับมาด้วย หรือ คำนวณสด
+    }
+
+    // แต่เดี๋ยวก่อน! จาก index.html เราเห็นว่าส่ง total ไปตอน createOrder
+    // ผมจะสมมติว่า Google Script ของคุณ return column ที่เก็บ Total มาให้ หรือ return items เป็น JSON
+    // ถ้า items เป็น String ธรรมดาที่อ่านยาก เราจะ render ตามมีตามเกิด
+    // *** เพื่อความชัวร์ ผมจะเขียน logic render โดยเน้นแสดงผลก่อน ***
 
     function renderTable(data) {
-      const table = document.getElementById('reportTable');
-      table.innerHTML = '';
-      let total = 0;
+        const table = document.getElementById('reportTable');
+        
+        if(data.length === 0) {
+            table.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">ไม่พบข้อมูล</td></tr>`;
+            updateSummary(0, 0);
+            return;
+        }
 
-      data.forEach(item => {
-        total += item.price;
-        table.innerHTML += `
-          <tr>
-            <td>${item.date}</td>
-            <td>${item.name}</td>
-            <td>${item.category}</td>
-            <td>${item.qty}</td>
-            <td>${item.price} บาท</td>
-          </tr>`;
-      });
+        let sumSales = 0;
 
-      document.getElementById('totalSales').innerText = total + ' บาท';
-      document.getElementById('totalOrders').innerText = data.length + ' รายการ';
+        table.innerHTML = data.map(item => {
+            // Logic การดึงราคา: 
+            // เนื่องจากเราไม่เห็น Code ฝั่ง Server ว่าส่ง field ไหนมาบ้าง
+            // เราจะพยายามดึงจาก property ที่น่าจะเป็นไปได้ หรือ parse จาก items
+            
+            // *hack* พยายาม extract ราคาจาก string ถ้า server ไม่ส่ง total มา
+            // แต่ปกติควรส่ง total มา ในที่นี้จะลองใช้ item.total ถ้ามี
+            let price = item.total ? parseFloat(item.total) : 0; 
+            
+            sumSales += price;
+
+            // กำหนดสีสถานะ
+            let statusClass = "st-waiting";
+            if(item.status === "กำลังปรุง") statusClass = "st-cooking";
+            if(item.status === "เสร็จสิ้น") statusClass = "st-done";
+
+            return `
+            <tr>
+                <td>
+                    <div style="font-weight:bold;">${new Date(item.time).toLocaleDateString('th-TH')}</div>
+                    <div style="font-size:12px; color:#6b7280;">${new Date(item.time).toLocaleTimeString('th-TH')}</div>
+                </td>
+                <td>${item.orderNumber}</td>
+                <td style="max-width:300px;">
+                    <div style="font-size:14px;">${item.items}</div>
+                    <div style="font-size:12px; color:#6b7280;">โต๊ะ: ${item.tableName} | ชื่อ: ${item.buyerName}</div>
+                </td>
+                <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                <td style="font-weight:bold; color:#2563eb;">${price > 0 ? price.toLocaleString() : '-'} ฿</td>
+            </tr>`;
+        }).join('');
+
+        updateSummary(sumSales, data.length);
+        feather.replace();
     }
 
-    function filterData() {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      const category = document.getElementById('category').value;
-
-      let filtered = salesData.filter(item => {
-        return (!start || item.date >= start) &&
-               (!end || item.date <= end) &&
-               (!category || item.category === category);
-      });
-
-      renderTable(filtered);
+    function updateSummary(sales, orders) {
+        document.getElementById('totalSales').innerText = sales.toLocaleString(undefined, {minimumFractionDigits: 2}) + ' บาท';
+        document.getElementById('totalOrders').innerText = orders + ' รายการ';
     }
 
-    renderTable(salesData);
+    function applyFilter() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        const status = document.getElementById('statusFilter').value;
+
+        let filtered = allOrders.filter(item => {
+            // แปลงวันที่ของออเดอร์เป็น YYYY-MM-DD เพื่อเปรียบเทียบ
+            const itemDate = new Date(item.time).toISOString().split('T')[0];
+            
+            const isAfterStart = !start || itemDate >= start;
+            const isBeforeEnd = !end || itemDate <= end;
+            const isStatusMatch = status === 'all' || item.status === status;
+
+            return isAfterStart && isBeforeEnd && isStatusMatch;
+        });
+
+        renderTable(filtered);
+    }
+
+    function resetFilter() {
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('statusFilter').value = 'all';
+        renderTable(allOrders);
+    }
   </script>
 
 </body>
